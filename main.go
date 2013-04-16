@@ -59,10 +59,10 @@ var (
 		flag.BoolVar(&flag_update, "update", flag_update, "Update (go get -u) package first")
 		flag.BoolVar(&flag_update, "u", flag_update, string(0))
 
-		flag.BoolVar(&flag_verbose, "verbose", flag_verbose, "")
+		flag.BoolVar(&flag_verbose, "verbose", flag_verbose, "Be more verbose")
 		flag.BoolVar(&flag_verbose, "v", flag_verbose, string(0))
 
-		flag.BoolVar(&flag_quiet, "quiet", flag_quiet, "")
+		flag.BoolVar(&flag_quiet, "quiet", flag_quiet, "Be absolutely quiet")
 		flag.BoolVar(&flag_quiet, "q", flag_quiet, string(0))
 		return 0
 	}()
@@ -113,7 +113,7 @@ func main(dst string, src string, extra map[string]string) error {
 	if err != nil {
 		if len(extra) > 0 {
 			if !flag_quiet {
-				fmt.Fprintf(os.Stderr, "%s: Unable to continue while missing Go package (in %s)\n", mainName, dst)
+				fmt.Fprintf(os.Stderr, "%s: unable to continue while missing Go package (in %s)\n", mainName, dst)
 			}
 			return err
 		}
@@ -207,8 +207,17 @@ func main(dst string, src string, extra map[string]string) error {
 }
 
 func usage() {
-	fmt.Fprintf(os.Stderr, "Usage of %s:\n", os.Args[0])
+	fmt.Fprintf(os.Stderr, "Usage: %s [target]\n", mainName)
 	kilt.PrintDefaults(flag)
+	fmt.Fprintf(os.Stderr, kilt.GraveTrim(`
+
+    # Import %q into the current directory
+    $ %s
+
+    # Import %q into another directory
+    $ %s ./xyzzy
+
+    `), mainPkg, mainName, mainPkg, mainName)
 }
 
 // Main is the entry point for a command-line application.
