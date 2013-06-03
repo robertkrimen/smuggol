@@ -41,9 +41,11 @@ defined:
 package smuggol
 
 import (
+	"bytes"
 	Flag "flag"
 	"fmt"
 	"io"
+	"io/ioutil"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -134,6 +136,36 @@ func main(dst string, src string, extra map[string]string) error {
 	}
 
 	relativeDstBase, relativeDstPath := relative(dstBase, dstPath)
+
+	{
+		manifest, err := ioutil.ReadDir(dstPath)
+		if err == nil {
+			buffer := make([]byte, 128)
+			for _, file := range manifest {
+				buffer = buffer[0:128]
+				if file.IsDir() {
+					continue
+				}
+				name := file.Name()
+				path := filepath.Join(dstPath, name)
+				file, err := os.Open(path)
+				if err != nil {
+					continue
+				}
+				count, err := file.Read(buffer)
+				if err != nil {
+					continue
+				}
+				buffer = buffer[:count]
+				if bytes.Contains(buffer, []byte("This file was AUTOMATICALLY GENERATED")) {
+					if flag_verbose {
+						fmt.Fprintf(os.Stdout, "- %s\n", filepath.Join(relativeDstPath, name))
+					}
+					os.Remove(path)
+				}
+			}
+		}
+	}
 
 	for _, file := range srcPkg.GoFiles {
 		if !flag_quiet {
